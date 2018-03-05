@@ -26,7 +26,7 @@ public class AuthTokDaoTest {
 
     @Before
     public void setup(){
-        model1 = new AuthTokModel("1a2b3c","hunter");
+        model1 = new AuthTokModel("1a2b3c","hunter", "personId");
         model2 = new AuthTokModel();
         model2.setAuthTok("222221");
         theDatabase = new Database();
@@ -35,7 +35,7 @@ public class AuthTokDaoTest {
     @Test
     public void testAddAuthTok(){
         addAuthTokResult = theDatabase.authTokTable.addAuthTok(model1);
-        assertEquals(addAuthTokResult.getUsername(),"hunter" );
+        assertEquals(addAuthTokResult.getUserName(),"hunter" );
         assertEquals(addAuthTokResult.getAuthTok(), "1a2b3c");
     }
 

@@ -7,7 +7,7 @@ package fms.results;
 public class LoginRegisterResult {
 
     private String authTok;
-    private String username;
+    private String userName;
     private String personId;
     private boolean successFlag;
     /**
@@ -19,8 +19,8 @@ public class LoginRegisterResult {
         return authTok;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUserName() {
+        return userName;
     }
 
     public String getPersonId() {
@@ -31,8 +31,8 @@ public class LoginRegisterResult {
         this.authTok = authTok;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public void setPersonId(String personId) {

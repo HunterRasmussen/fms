@@ -6,9 +6,11 @@ package fms.models;
 
 public class AuthTokModel {
 
-    public AuthTokModel(String authTok, String username){
+    public AuthTokModel(String authTok, String userName, String personId){
         this.authTok = authTok;
-        this.username = username;
+        this.userName = userName;
+        this.personId = personId;
+
     }
     public AuthTokModel(){
 
@@ -18,8 +20,8 @@ public class AuthTokModel {
         this.authTok = authTok;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public void setPersonId(String personId) {
@@ -27,14 +29,14 @@ public class AuthTokModel {
     }
 
     private String authTok;
-    private String username;
+    private String userName;
     private String personId;
 
     public String getAuthTok(){
         return authTok;
     }
-    public String getUsername(){
-        return username;
+    public String getUserName(){
+        return userName;
     }
     public String getPersonId(){return personId;}
 

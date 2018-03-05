@@ -29,13 +29,14 @@ public class AuthTokDao {
         LoginRegisterResult toReturn = new LoginRegisterResult();
         try{
             addUserStmt = database.connection.prepareStatement(addUserSql);
-            addUserStmt.setString(1,toAdd.getUsername());
+            addUserStmt.setString(1,toAdd.getUserName());
             addUserStmt.setString(2,toAdd.getAuthTok());
 
             if(addUserStmt.executeUpdate() == 1){
                 toReturn.setSuccessFlag(true);
                 toReturn.setAuthTok(toAdd.getAuthTok());
-                toReturn.setUsername(toAdd.getUsername());
+                toReturn.setUserName(toAdd.getUserName());
+                toReturn.setPersonId(toAdd.getPersonId());
                 if(addUserStmt != null){
                     addUserStmt.close();
                 }

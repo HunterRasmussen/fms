@@ -20,7 +20,7 @@ public class UserDaoTest {
 
     @Before
     public void setup(){
-        model1 = new UserModel("username" ,"password" , "email@gmail.com", "firstname", "lastName", 'm', "personID");
+        model1 = new UserModel("userName" ,"password" , "email@gmail.com", "firstname", "lastName", 'm', "personID");
         theDatabase = new Database();
 
 
@@ -35,40 +35,35 @@ public class UserDaoTest {
         catch(SQLException e){
             System.out.println("Line 48 User Dao Test, shouldn't be here...  Exceptions should be handled below this level");
         }
-        assertEquals(ourResult.getUsername(), "username");
+        assertEquals(ourResult.getUserName(), "userName");
         assertEquals(ourResult.isSuccessFlag(), true);
         assertEquals(ourResult.getPersonId(), "personId");
     }
 
     @Test
     public void testGetUser(){
-        model2 = theDatabase.usersTable.getUser("username");
-        if(model2.successFlag == true){
-
-            assertEquals(model1.getUsername(),model2.getUsername());
+        model2 = theDatabase.usersTable.getUser("userName");
+            assertEquals(model1.getUserName(),model2.getUserName());
             assertEquals(model1.getPassword(), model2.getPassword());
             assertEquals(model1.getEmail(),model2.getEmail());
             assertEquals(model1.getFirstName(),model2.getFirstName());
             assertEquals(model1.getLastName(), model2.getLastName());
             assertEquals(model1.getGender(), model2.getGender());
             assertEquals(model1.getPersonId(), model2.getPersonId());
-        }
-
     }
 
     @Test
     public void testGetNonExistantUser(){
         model2 = theDatabase.usersTable.getUser("freddy");
-        assertEquals(model2.getUsername(), null);
-        assertEquals(model2.successFlag, false);
-        assertEquals(model2.successMessage, "[SQLITE_ERROR] SQL error or missing database (no such table: users)");
+        assertEquals(model2, null);
+        //assertEquals(model2.successMessage, "[SQLITE_ERROR] SQL error or missing database (no such table: users)");
     }
 
 
 
     @Test
     public void testRemoveUser(){
-        stringResult = theDatabase.usersTable.removeUser("username");
+        stringResult = theDatabase.usersTable.removeUser("userName");
         assertEquals(stringResult,"good");
     }
 

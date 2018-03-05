@@ -40,7 +40,7 @@ public class UserDao {
 
         try{
             addUserStmt = database.connection.prepareStatement(addUserSql);
-            addUserStmt.setString(1,toAdd.getUsername());
+            addUserStmt.setString(1,toAdd.getUserName());
             addUserStmt.setString(2,toAdd.getPassword());
             addUserStmt.setString(3,toAdd.getEmail());
             addUserStmt.setString(4,toAdd.getFirstName());
@@ -50,8 +50,8 @@ public class UserDao {
 
             if(addUserStmt.executeUpdate() == 1){
                 toReturn.setSuccessFlag(true);
-                toReturn.setUsername(toAdd.getUsername());
-                toReturn.setPersonId("personId");
+                toReturn.setUserName(toAdd.getUserName());
+                toReturn.setPersonId(toAdd.getPersonId());
                 return toReturn;
 
             }
@@ -74,13 +74,13 @@ public class UserDao {
      *
      * @return a string declaring wether it succeeded or not.
      */
-    public String removeUser(String username){
+    public String removeUser(String userName){
         PreparedStatement removeUserStmt = null;
         String toReturn;
         try{
             String removeUserSql = "delete from User where USERNAME = ?";
             removeUserStmt = database.connection.prepareStatement(removeUserSql);
-            removeUserStmt.setString(1,username);
+            removeUserStmt.setString(1,userName);
             removeUserStmt.executeUpdate();
             removeUserStmt.close();
             toReturn = "good";
@@ -111,20 +111,21 @@ public class UserDao {
 
             while(results.next()){
                 toReturn = new UserModel();
-                toReturn.setUsername(results.getString(1));
+                toReturn.setUserName(results.getString(1));
                 toReturn.setPassword(results.getString(2));
                 toReturn.setEmail(results.getString(3));
                 toReturn.setFirstName(results.getString(4));
                 toReturn.setLastName(results.getString(5));
                 toReturn.setGender(results.getString(6).charAt(0));
                 toReturn.setPersonId(results.getString(7));
-                toReturn.successFlag = true;
+
             }
         }
         catch(SQLException e){
-            toReturn = new UserModel();
-            toReturn.successFlag = false;
-            toReturn.successMessage = e.getMessage();
+            toReturn = null;
+            System.out.println("Error with getting a user from the database.  ");
+            e.printStackTrace();
+            System.out.println(e.getMessage());
             return toReturn;
         }
         return toReturn;

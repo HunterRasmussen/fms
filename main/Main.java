@@ -9,9 +9,17 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import fms.dao.Database;
+import fms.facade.ServerFacade;
+import fms.models.AuthTokModel;
+import fms.models.UserModel;
 import fms.results.LoginRegisterResult;
 import fms.test.TestJunit;
 import java.util.Random;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 
 public class Main {
@@ -19,6 +27,9 @@ public class Main {
     private static int PORT_NUMBER;
     private HttpServer myServer;
     private static final int MAX_WAITING_CONNECTIONS = 12;
+    private Gson gson = new Gson();
+    private ServerFacade facade;
+
 
     Connection connection = null;   //------
     PreparedStatement stmt = null;  //-------
@@ -27,26 +38,11 @@ public class Main {
     public static void main(String[] args) throws Exception{
 
         Database theDatabase = new Database();
-        String chars = "abccdefghijklnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder authTokBuild = new StringBuilder();
-        for(int i =0; i < 6;i++){
-            //append their user id to the front
-            Random rand = new Random();
-            int randomIndex = rand.nextInt(chars.length()-1); // chars.length()-1 is the largest index, and 0 is the smalles index
-            authTokBuild.append(chars.charAt(randomIndex));
-        }
-        System.out.println(authTokBuild.toString());
-
         theDatabase.clearDb();
-
         PORT_NUMBER = Integer.parseInt(args[0]);
-
         new Main().runServer();
 
         //new Main().runJunitTests();
-
-
-        System.out.println("finished tests?");
     }
 
 
@@ -79,6 +75,8 @@ public class Main {
         System.out.println("Starting server");
         myServer.start();
         System.out.println("Server started");
+        facade = new ServerFacade();
+        System.out.println("Facade created");
     }
 
     private HttpHandler loadHandler = new HttpHandler(){
@@ -108,33 +106,112 @@ public class Main {
             LoginRegisterResult result = new LoginRegisterResult();
             try{
 
-                /*if (httpExchange.getRequestMethod().toLowerCase().equals("get")) {
-                    Headers reqHeaders = httpExchange.getRequestHeaders();
-                    System.out.println("Hey.  Made it to default Handler good job");
-                    System.out.println(reqHeaders);
-                    String respData = "Welcome to the default Handler.  We're trying to get this so it actually does what you and I want.  Please be patient.  Try back in 1 year.";
-                    httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
-                    OutputStream respBody = httpExchange.getResponseBody();
-                    writeString(respData, respBody);
-                    respBody.close();
-                    success = true;*/
-                //if (httpExchange.getRequestMethod().toLowerCase().equals("post")){
+
+                if (httpExchange.getRequestMethod().toLowerCase().equals("post")){
                     Headers reqHeaders= httpExchange.getRequestHeaders();
-                    System.out.println("Hey made it to the register handler.");
                     System.out.println(reqHeaders);
                     InputStream reqBody = httpExchange.getRequestBody();
-                    String reqData = readString(reqBody);
-                    System.out.println(reqData);
-                    httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
+                    String reqData= readString(reqBody);
+                    System.out.println("    Request Body: " + reqData);
+                    JsonObject json = gson.fromJson(reqData, JsonObject.class);
+                    UserModel user = new UserModel();
+                    if(json!= null){
+                        Boolean validUserCheck = true;
+                        if(json.has("userName")){
+                            user.setUserName(json.get("userName").getAsString());
+                        }
+                        else{
+                            validUserCheck = false;
+                            JsonObject toSend = createJsonMessagFromString("Error.  No userName data found in the register request");
+                            sendData(toSend,httpExchange);
+                        }
+
+                        if(json.has("password")){
+                            user.setPassword(json.get("password").getAsString());
+                        }
+                        else{
+                            validUserCheck = false;
+                            JsonObject toSend = createJsonMessagFromString("Error.  No password data found in the register request");
+                            sendData(toSend,httpExchange);
+                        }
+                        if(json.has("email")){
+                            user.setEmail(json.get("email").getAsString());
+                        }
+                        else{
+                            validUserCheck = false;
+                            JsonObject toSend = createJsonMessagFromString("Error.  No Email data found in the register request");
+                            sendData(toSend,httpExchange);
+                        }
+                        if(json.has("firstName")){
+                            user.setFirstName(json.get("firstName").getAsString());
+                        }
+                        else{
+                            validUserCheck = false;
+                            JsonObject toSend = createJsonMessagFromString("Error.  No First Name data found in the register request");
+                            sendData(toSend,httpExchange);
+                        }
+                        if(json.has("lastName")){
+                            user.setLastName(json.get("lastName").getAsString());
+                        }
+                        else{
+                            validUserCheck = false;
+                            JsonObject toSend = createJsonMessagFromString("Error.  No Last Name data found in the register request");
+                            sendData(toSend,httpExchange);
+                        }
+                        if(json.has("gender")){
+                            String gender = (json.get("gender").getAsString());
+                            if(gender.length() >1){
+                                validUserCheck = false;
+                                JsonObject toSend = createJsonMessagFromString("Error.  Gender data length is longer than one. Enter either an m or an f");
+                                sendData(toSend,httpExchange);
+                            }
+                            else{
+                                gender.toLowerCase();
+                                user.setGender(gender.charAt(0));
+                            }
+                        }
+                        else{
+                            validUserCheck = false;
+                            JsonObject toSend = createJsonMessagFromString("Error.  No Gender data found in the register request");
+                            sendData(toSend,httpExchange);
+                        }
+                        if(!facade.checkUserNameAvailability(user.getUserName())){
+                            validUserCheck = false;
+                            JsonObject toSend = createJsonMessagFromString("Error.  Username is not available.  Please try a different username.");
+                            sendData(toSend,httpExchange);
+                        }
+                        if(validUserCheck) {
+                            LoginRegisterResult registerResult = facade.registerUser(user);
+                            if (registerResult.isSuccessFlag() == false) {
+                                JsonObject toSend = createJsonMessagFromString(registerResult.getErrorMessage());
+                                sendData(toSend, httpExchange);
+                            } else {
+                                AuthTokModel toSend = new AuthTokModel();
+                                toSend.setAuthTok(registerResult.getAuthTok());
+                                toSend.setPersonId(registerResult.getPersonId());
+                                toSend.setUserName(registerResult.getUserName());
+                                sendData(toSend, httpExchange);
+                            }
+                        }
+                        /*System.out.println("Sending the completed user back to the web server");
+                        sendData(user, httpExchange);*/
+                    }
+                    else{
+                        JsonObject toSend = createJsonMessagFromString("Error with json Object from request body.  It seems to be null.");
+                        sendData(toSend,httpExchange);
+                    }
+
+                    /*httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
                     String respData = "username: hunter \n ";
                     OutputStream respBody = httpExchange.getResponseBody();
                     writeString(respData, respBody);
-                    respBody.close();
-                //}
+                    System.out.println("Line 132 " + respBody);
+                    respBody.close();*/
+                }
 
             }
-            catch(Exception e){
-
+            catch(IOException e){
+                System.out.println(e.getMessage());
             }
         }
     };
@@ -161,6 +238,7 @@ public class Main {
     };
 
     private HttpHandler defaultHandler = new HttpHandler() {
+
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
             boolean success = false;
@@ -174,14 +252,16 @@ public class Main {
                     String response = "403 (Forbidden)\n";
                     httpExchange.sendResponseHeaders(403, response.length());
                     OutputStream os = httpExchange.getResponseBody();
-                    os.write(response.getBytes()); os.close();
+                    os.write(response.getBytes());
+                    os.close();
                 }
                 else if (!file.isFile()) {
                     // Object does not exist or is not a file: reject with 404 error.
                     String response = "404 (Not Found)\n";
                     httpExchange.sendResponseHeaders(404, response.length());
                     OutputStream os = httpExchange.getResponseBody();
-                    os.write(response.getBytes()); os.close();
+                    os.write(response.getBytes());
+                    os.close();
                 }
                 else {
                     // Object exists and is a file: accept with response code 200.
@@ -197,19 +277,6 @@ public class Main {
                     os.close();
                 }
             }
-
-               /* if (httpExchange.getRequestMethod().toLowerCase().equals("get")) {
-                    Headers reqHeaders = httpExchange.getRequestHeaders();
-                    System.out.println("Hey.  Made it to default Handler good job");
-                    System.out.println(reqHeaders);
-                    String respData = "Welcome to the default Handler.  We're trying to get this so it actually does what you and I want.  Please be patient.  Try back in 1 year.";
-                    httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
-                    OutputStream respBody = httpExchange.getResponseBody();
-                    writeString(respData, respBody);
-                    respBody.close();
-                    success = true;
-                }
-            }*/
             catch (Exception e) {
                 httpExchange.getResponseBody().close();
                 // Display/log the stack trace
@@ -218,20 +285,49 @@ public class Main {
         }
     };
 
-    private void writeString(String str, OutputStream os) throws IOException {
-        OutputStreamWriter sw = new OutputStreamWriter(os);
-        sw.write(str);
-        sw.flush();
+    /**
+     *      sends data from the server to the client using http.  Converts the object given, t
+     *      turns it to json, sends it.
+     * @param obj  -- the object you want to send through http
+     * @param httpExchange -- the current exchange object so it knows what vessel through which to
+     *                     send the data
+     *
+     * Catches IOException
+     */
+    private void sendData(Object obj, HttpExchange httpExchange){
+        try{
+            if(obj == null){
+               httpExchange .sendResponseHeaders(HttpURLConnection.HTTP_OK, -1);
+            }
+            else{
+                httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
+                OutputStreamWriter os = new OutputStreamWriter(httpExchange.getResponseBody());
+                Gson gsonToSend = new GsonBuilder().disableHtmlEscaping().create();
+                String jsonToSend = gsonToSend.toJson(obj);
+                os.write(jsonToSend);
+                os.close();
+            }
+        }
+        catch(IOException e){
+            //e.printStackTrace();
+            System.out.println("\n Error sending data from sendData method");
+        }
+    }
+
+    private JsonObject createJsonMessagFromString (String messageToSend){
+        JsonObject toReturn = new JsonObject();
+        toReturn.addProperty("message",messageToSend);
+        return toReturn;
     }
 
     private String readString(InputStream is) throws IOException {
         StringBuilder sb = new StringBuilder();
         InputStreamReader sr = new InputStreamReader(is);
-        char[] buf = new char[1024];
-        int len;
-        while ((len = sr.read(buf)) > 0) {
-            sb.append(buf, 0, len);
+        BufferedReader reader = new BufferedReader(sr);
+        for(String line = reader.readLine(); line != null; line = reader.readLine()) {
+            sb.append(line);
         }
+        reader.close();
         return sb.toString();
     }
 

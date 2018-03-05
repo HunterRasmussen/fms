@@ -5,8 +5,8 @@ package fms.models;
  */
 
 public class UserModel {
-    public UserModel(String username, String password, String email, String firstName, String lastName, char gender, String personId) {
-        this.username = username;
+    public UserModel(String userName, String password, String email, String firstName, String lastName, char gender, String personId) {
+        this.userName = userName;
         this.password = password;
         this.email = email;
         this.firstName = firstName;
@@ -17,22 +17,22 @@ public class UserModel {
     //Empty Constructor
     public UserModel(){};
 
-    private String username;
+    private String userName;
     private String password;
     private String email;
     private String firstName;
     private String lastName;
     private char gender;
     private String personId;
-    public boolean successFlag;
-    public String successMessage;
+    //public boolean successFlag;
+    //public String successMessage;
 
-    public String getUsername() {
-        return username;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getPassword() {

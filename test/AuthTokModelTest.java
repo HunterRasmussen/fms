@@ -13,13 +13,13 @@ public class AuthTokModelTest {
 
     @Before
     public void setup() {
-        model1 = new AuthTokModel("12345b", "myUsername");
-        model2 = new AuthTokModel("12345b", "myUsername");
+        model1 = new AuthTokModel("12345b", "myUsername", "personid1");
+        model2 = new AuthTokModel("12345b", "myUsername", "personid2");
     }
 
     @Test
     public void testCompare(){
-        assertEquals(model1.getUsername(), model2.getUsername());
+        assertEquals(model1.getUserName(), model2.getUserName());
         assertEquals(model1.getAuthTok(), model2.getAuthTok());
     }
 }
