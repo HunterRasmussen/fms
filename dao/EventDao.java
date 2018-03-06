@@ -98,6 +98,41 @@ public class EventDao {
 
     }
 
+    public String removeEventsbyDescendantId(String descendantId){
+        PreparedStatement removeEventsStmt = null;
+        String toReturn;
+        try{
+            String removeEventSql = "delete from Event where DESCENDANTID = ?";
+            removeEventsStmt = database.connection.prepareStatement(removeEventSql);
+            removeEventsStmt.setString(1,descendantId);
+            removeEventsStmt.executeUpdate();
+            removeEventsStmt.close();
+            toReturn = "success";
+            return toReturn;
+        }
+        catch(SQLException e){
+            toReturn = e.getMessage();
+            return toReturn;
+        }
+    }
+
+    public String removeEventsbyPersonId(String personId){
+        PreparedStatement removeEventsStmt = null;
+        String toReturn;
+        try{
+            String removeEventSql = "delete from Event where PERSONID = ?";
+            removeEventsStmt = database.connection.prepareStatement(removeEventSql);
+            removeEventsStmt.setString(1,personId);
+            removeEventsStmt.executeUpdate();
+            removeEventsStmt.close();
+            toReturn = "success";
+            return toReturn;
+        }
+        catch(SQLException e){
+            toReturn = e.getMessage();
+            return toReturn;
+        }
+    }
 
 
     public List<EventModel> getAllEventsByUsername (String username){

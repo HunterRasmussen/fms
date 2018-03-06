@@ -124,6 +124,10 @@ public class UserDao {
         catch(SQLException e){
             toReturn = null;
             System.out.println("Error with getting a user from the database.  ");
+            if (e.getMessage().contains("column USERNAME is not unique")){
+                toReturn = new UserModel();
+                toReturn.setUserName("column USERNAME is not unique");
+            }
             e.printStackTrace();
             System.out.println(e.getMessage());
             return toReturn;

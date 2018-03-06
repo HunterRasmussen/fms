@@ -175,17 +175,19 @@ public class Main {
                             JsonObject toSend = createJsonMessagFromString("Error.  No Gender data found in the register request");
                             sendData(toSend,httpExchange);
                         }
-                        if(!facade.checkUserNameAvailability(user.getUserName())){
-                            validUserCheck = false;
-                            JsonObject toSend = createJsonMessagFromString("Error.  Username is not available.  Please try a different username.");
-                            sendData(toSend,httpExchange);
-                        }
                         if(validUserCheck) {
                             LoginRegisterResult registerResult = facade.registerUser(user);
                             if (registerResult.isSuccessFlag() == false) {
-                                JsonObject toSend = createJsonMessagFromString(registerResult.getErrorMessage());
-                                sendData(toSend, httpExchange);
-                            } else {
+                                if(registerResult.getErrorMessage().contains("column USERNAME is not unique")){
+                                    JsonObject toSend = createJsonMessagFromString("That UserName is already in use.  Try a different one.");
+                                    sendData(toSend, httpExchange);
+                                }
+                                else {
+                                    JsonObject toSend = createJsonMessagFromString(registerResult.getErrorMessage());
+                                    sendData(toSend, httpExchange);
+                                }
+                            }
+                            else {
                                 AuthTokModel toSend = new AuthTokModel();
                                 toSend.setAuthTok(registerResult.getAuthTok());
                                 toSend.setPersonId(registerResult.getPersonId());

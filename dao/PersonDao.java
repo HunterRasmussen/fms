@@ -87,7 +87,25 @@ public class PersonDao {
             toReturn = e.getMessage();
             return toReturn;
         }
-        //return "End of removePerson in PersonDAO.  Shouldn't get here.";
+
+    }
+
+    public String removePersonsByDescendantId(String userName){
+        PreparedStatement removePersonStmt = null;
+        String toReturn;
+        try{
+            String removePersonSql = "delete from Person where DESCENDANTID = ?";
+            removePersonStmt = database.connection.prepareStatement(removePersonSql);
+            removePersonStmt.setString(1,userName);
+            removePersonStmt.close();
+            toReturn= "success";
+            return toReturn;
+
+        }
+        catch(SQLException e){
+            toReturn = e.getMessage();
+            return toReturn;
+        }
     }
 
 
