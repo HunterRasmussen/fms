@@ -29,38 +29,37 @@ public class PersonDao {
      *      If it is unsuccessful,
      *      It will create a SinglePersonResult object and mark the flag false and give an error message
      */
-    public SinglePersonResult addPerson(PersonModel toAdd ){PreparedStatement addEventStmt = null;
-        String addEventSql = "insert into Person (PERSONID, DESCENDANTID, FIRSTNAME, LASTNAME," +
+    public String addPerson(PersonModel toAdd ){
+        PreparedStatement addPersonStmt = null;
+        String addPersonSql = "insert into Person (PERSONID, DESCENDANTID, FIRSTNAME, LASTNAME," +
                 " GENDER, FATHERID, MOTHERID, SPOUSEID) VALUES(?,?,?,?,?,?,?,?)";
-        SinglePersonResult toReturn = new SinglePersonResult();
+        String toReturn = null;
 
         try{
-            addEventStmt = database.connection.prepareStatement(addEventSql);
-            addEventStmt.setString(1, toAdd.getPersonId());
-            addEventStmt.setString(2, toAdd.getDescendantId());
-            addEventStmt.setString(3, toAdd.getFirstName());
-            addEventStmt.setString(4, toAdd.getLastName());
-            addEventStmt.setString(5, Character.toString(toAdd.getGender()));
-            addEventStmt.setString(6, toAdd.getFatherId());
-            addEventStmt.setString(7, toAdd.getMotherId());
+            addPersonStmt = database.connection.prepareStatement(addPersonSql);
+            addPersonStmt.setString(1, toAdd.getPersonId());
+            addPersonStmt.setString(2, toAdd.getDescendantId());
+            addPersonStmt.setString(3, toAdd.getFirstName());
+            addPersonStmt.setString(4, toAdd.getLastName());
+            addPersonStmt.setString(5, Character.toString(toAdd.getGender()));
+            addPersonStmt.setString(6, toAdd.getFatherId());
+            addPersonStmt.setString(7, toAdd.getMotherId());
 
-            if(addEventStmt.executeUpdate() == 1){
-                toReturn.setFlag(true);
-                toReturn.person = toAdd;
-                if(addEventStmt != null){
-                    addEventStmt.close();
+            if(addPersonStmt.executeUpdate() == 1){
+
+                toReturn = "success";
+                if(addPersonStmt != null){
+                    addPersonStmt.close();
                 }
                 return toReturn;
             }
         }
         catch(SQLException e){
-            toReturn.setFlag(false);
-            toReturn.setErrorMessage(e.getMessage());
-            toReturn.person = null;
+            toReturn = e.getMessage();
             return toReturn;
         }
 
-        toReturn.setErrorMessage("Got to the end of the method.  Shouldn't have.  Look into this");
+        toReturn = "Got to the end of the method.  Shouldn't have.  Look into this";
         return toReturn;
     }
 
@@ -147,7 +146,27 @@ public class PersonDao {
      *
      * @return a string detailing success or error
      */
-    String updatePerson(PersonModel toUpdate){
-        return "";
+    public String updateParents(PersonModel toUpdate){
+        PreparedStatement updatePersonStmt = null;
+        try{
+            String updatePersonSql = "UPDATE Person" +
+                    "SET FATHERID = \'" + toUpdate.getFatherId() + "\'," +
+                    "MOTHERID = \'" + toUpdate.getMotherId() + "\' " +
+                    "WHERE PERSONID = \'" + toUpdate.getPersonId() + "\';";
+            updatePersonStmt = database.connection.prepareStatement(updatePersonSql);
+            if(updatePersonStmt.executeUpdate() == 1){
+                if(updatePersonStmt != null){
+                    updatePersonStmt.close();
+                }
+                return "success";
+            }
+
+        }
+        catch(SQLException e){
+            return e.getMessage();
+        }
+
+        return "Error.  Got to the end of updateParents method in PersonDao." +
+                "  Didn't account for that.  Use breakpoints and replicate last attempt.";
     }
 }

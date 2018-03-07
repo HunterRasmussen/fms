@@ -29,18 +29,18 @@ public class EventDaoTest {
 
     @Before
     public void setup(){
-        model1 = new EventModel("EventId1", "descendantId", "PersonId2", "11W22N", "11E22S", "Denmark", "Paris", "Birth", "1994");
+        model1 = new EventModel("EventId1", "descendantId", "PersonId2", 1122, 1123, "Denmark", "Paris", "Birth", 1994);
         theDatabase = new Database();
 
     }
 
     @Test
     public void testAddEvent(){
-        addEventResult = theDatabase.eventsTable.addEvent(model1);
+        String addResult = theDatabase.eventsTable.addEvent(model1);
         assertEquals(addEventResult.event.getEventId(), "EventId1");
         assertEquals(addEventResult.getSuccessFlag(), true);
         assertEquals(addEventResult.event.getPersonId(), "PersonId2");
-        assertEquals(addEventResult.event.getLatitude(), "11W22N");
+        assertEquals(addEventResult.event.getLatitude(), 1122);
     }
 
     @Test
@@ -52,8 +52,8 @@ public class EventDaoTest {
 
     @Test
     public void testGetAllEventsByUsername(){
-        EventModel testModel1 = new EventModel("EventId2", "hunter", "PersonId2", "1234","4321", "USA" , "Auberry", "Graduation", "2012");
-        SingleEventResult test1 = theDatabase.eventsTable.addEvent(testModel1);
+        EventModel testModel1 = new EventModel("EventId2", "hunter", "PersonId2", 1234, 4321, "USA" , "Auberry", "Graduation", 2012);
+        String test1 = theDatabase.eventsTable.addEvent(testModel1);
     }
 
     @Test

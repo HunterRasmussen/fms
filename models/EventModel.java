@@ -6,8 +6,8 @@ package fms.models;
 
 public class EventModel {
 
-    public EventModel(String EventId, String descendantId, String personId , String latitude, String longitude,
-                      String country , String city , String eventType , String year){
+    public EventModel(String EventId, String descendantId, String personId , double latitude, double longitude,
+                      String country , String city , String eventType , int year){
 
         this.EventId = EventId;
         this.descendantId = descendantId;
@@ -25,12 +25,12 @@ public class EventModel {
     private String EventId;
     private String descendantId;
     private String personId;
-    private String latitude;
-    private String longitude;
+    private double latitude;
+    private double longitude;
     private String country;
     private String city;
     private String eventType;
-    private String year;
+    private int year;
 
 
     public String getEventId() {
@@ -57,19 +57,19 @@ public class EventModel {
         this.personId = personId;
     }
 
-    public String getLatitude() {
+    public double getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(String latitude) {
+    public void setLatitude(double latitude) {
         this.latitude = latitude;
     }
 
-    public String getLongitude() {
+    public double getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(String longitude) {
+    public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
 
@@ -97,11 +97,11 @@ public class EventModel {
         this.eventType = eventType;
     }
 
-    public String getYear() {
+    public int getYear() {
         return year;
     }
 
-    public void setYear(String year) {
+    public void setYear(int year) {
         this.year = year;
     }
 }

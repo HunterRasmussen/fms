@@ -32,12 +32,12 @@ public class EventDao {
      *      If it is unsuccessful,
      *          It will create a SinglePersonResult object and mark the flag false and give an error message
      */
-    public SingleEventResult addEvent(EventModel toAdd){
+    public String addEvent(EventModel toAdd){
 
         PreparedStatement addEventStmt = null;
         String addEventSql = "insert into Event (EVENTID, DESCENDANTID, EVENTTYPE, PERSONID," +
                 " LATITUDE, LONGITUDE, COUNTRY, CITY, YEAR) VALUES(?,?,?,?,?,?,?,?,?)";
-        SingleEventResult toReturn = new SingleEventResult();
+        String toReturn = null;
 
         try{
             addEventStmt = database.connection.prepareStatement(addEventSql);
@@ -45,15 +45,14 @@ public class EventDao {
             addEventStmt.setString(2, toAdd.getDescendantId());
             addEventStmt.setString(3, toAdd.getEventType());
             addEventStmt.setString(4, toAdd.getPersonId());
-            addEventStmt.setString(5, toAdd.getLatitude());
-            addEventStmt.setString(6, toAdd.getLongitude());
+            addEventStmt.setDouble(5, toAdd.getLatitude());
+            addEventStmt.setDouble(6, toAdd.getLongitude());
             addEventStmt.setString(7, toAdd.getCountry());
             addEventStmt.setString(8, toAdd.getCity());
-            addEventStmt.setString(9, toAdd.getYear());
+            addEventStmt.setInt   (9, toAdd.getYear());
 
             if(addEventStmt.executeUpdate() == 1){
-                toReturn.setSuccessFlag(true);
-                toReturn.event = toAdd;
+                toReturn = "success";
                 if(addEventStmt != null){
                     addEventStmt.close();
                 }
@@ -61,13 +60,11 @@ public class EventDao {
             }
         }
         catch(SQLException e){
-            toReturn.setSuccessFlag(false);
-            toReturn.setErrorMessage(e.getMessage());
-            toReturn.event = null;
+            toReturn = e.getMessage();
             return toReturn;
         }
 
-        toReturn.setErrorMessage("Got to the end of the method.  Shouldn't have.");
+        toReturn = "Got to the end of the addEvent method in the EventDao.  Shouldn't have.  Take a look at it." ;
         return toReturn;
     }
 
@@ -151,11 +148,11 @@ public class EventDao {
                 eventToAdd.setDescendantId(resultSet.getString(2));
                 eventToAdd.setEventType(resultSet.getString(3));
                 eventToAdd.setPersonId(resultSet.getString(4));
-                eventToAdd.setLatitude(resultSet.getString(5));
-                eventToAdd.setLongitude(resultSet.getString(6));
+                eventToAdd.setLatitude(resultSet.getDouble(5));
+                eventToAdd.setLongitude(resultSet.getDouble(6));
                 eventToAdd.setCountry(resultSet.getString(7));
                 eventToAdd.setCity(resultSet.getString(8));
-                eventToAdd.setYear(resultSet.getString(9));
+                eventToAdd.setYear(resultSet.getInt(9));
                 toReturn.add(eventToAdd);
             }
         }
@@ -182,11 +179,11 @@ public class EventDao {
                 toAdd.setDescendantId(resultSet.getString(2));
                 toAdd.setEventType(resultSet.getString(3));
                 toAdd.setPersonId(resultSet.getString(4));
-                toAdd.setLatitude(resultSet.getString(5));
-                toAdd.setLongitude(resultSet.getString(6));
+                toAdd.setLatitude(resultSet.getDouble(5));
+                toAdd.setLongitude(resultSet.getDouble(6));
                 toAdd.setCountry(resultSet.getString(7));
                 toAdd.setCity(resultSet.getString(8));
-                toAdd.setYear(resultSet.getString(9));
+                toAdd.setYear(resultSet.getInt(9));
                 toReturn.add(toAdd);
             }
             return toReturn;
@@ -213,11 +210,11 @@ public class EventDao {
                 toReturn.setDescendantId(resultSet.getString(2));
                 toReturn.setEventType(resultSet.getString(3));
                 toReturn.setPersonId(resultSet.getString(4));
-                toReturn.setLatitude(resultSet.getString(5));
-                toReturn.setLongitude(resultSet.getString(6));
+                toReturn.setLatitude(resultSet.getDouble(5));
+                toReturn.setLongitude(resultSet.getDouble(6));
                 toReturn.setCountry(resultSet.getString(7));
                 toReturn.setCity(resultSet.getString(8));
-                toReturn.setYear(resultSet.getString(9));
+                toReturn.setYear(resultSet.getInt(9));
             }
             getEventStmt.close();
             return toReturn;

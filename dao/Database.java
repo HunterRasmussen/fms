@@ -79,11 +79,11 @@ public class Database {
                 "    DESCENDANTID TEXT NOT NULL,\n" +
                 "    EVENTTYPE text NOT NULL,\n" +
                 "    PERSONID TEXT NOT NULL,\n" +
-                "    LATITUDE text NOT NULL,\n" +
-                "    LONGITUDE text NOT NULL,\n" +
+                "    LATITUDE REAL NOT NULL,\n" +
+                "    LONGITUDE REAL NOT NULL,\n" +
                 "    COUNTRY text NOT NULL,\n" +
                 "    CITY text NOT NULL,\n" +
-                "    YEAR text NOT NULL)";
+                "    YEAR INT NOT NULL)";
 
         String createAuthTokTable = "create table if not exists AuthTok\n" +
                 "    (USERNAME TEXT NOT NULL,\n" +
