@@ -35,16 +35,16 @@ public class EventDao {
     public String addEvent(EventModel toAdd){
 
         PreparedStatement addEventStmt = null;
-        String addEventSql = "insert into Event (EVENTID, DESCENDANTID, EVENTTYPE, PERSONID," +
+        String addEventSql = "insert into Event (EVENTID, DESCENDANT, EVENTTYPE, PERSONID," +
                 " LATITUDE, LONGITUDE, COUNTRY, CITY, YEAR) VALUES(?,?,?,?,?,?,?,?,?)";
         String toReturn = null;
 
         try{
             addEventStmt = database.connection.prepareStatement(addEventSql);
-            addEventStmt.setString(1,toAdd.getEventId());
-            addEventStmt.setString(2, toAdd.getDescendantId());
+            addEventStmt.setString(1,toAdd.getEventID());
+            addEventStmt.setString(2, toAdd.getDescendant());
             addEventStmt.setString(3, toAdd.getEventType());
-            addEventStmt.setString(4, toAdd.getPersonId());
+            addEventStmt.setString(4, toAdd.getPersonID());
             addEventStmt.setDouble(5, toAdd.getLatitude());
             addEventStmt.setDouble(6, toAdd.getLongitude());
             addEventStmt.setString(7, toAdd.getCountry());
@@ -95,13 +95,28 @@ public class EventDao {
 
     }
 
-    public String removeEventsbyDescendantId(String descendantId){
+    public String removeAllEvents(){
+        PreparedStatement removeAllEventsStmt = null;
+        try{
+            String removeAllEventsSql = "delete from Event";
+            removeAllEventsStmt = database.connection.prepareStatement(removeAllEventsSql);
+            removeAllEventsStmt.executeUpdate();
+            removeAllEventsStmt.close();
+            return "success";
+        }
+        catch(SQLException e){
+            e.printStackTrace();
+            return e.getMessage();
+        }
+    }
+
+    public String removeEventsbyDescendant(String Descendant){
         PreparedStatement removeEventsStmt = null;
         String toReturn;
         try{
-            String removeEventSql = "delete from Event where DESCENDANTID = ?";
+            String removeEventSql = "delete from Event where DESCENDANT = ?";
             removeEventsStmt = database.connection.prepareStatement(removeEventSql);
-            removeEventsStmt.setString(1,descendantId);
+            removeEventsStmt.setString(1,Descendant);
             removeEventsStmt.executeUpdate();
             removeEventsStmt.close();
             toReturn = "success";
@@ -119,7 +134,7 @@ public class EventDao {
         try{
             String removeEventSql = "delete from Event where PERSONID = ?";
             removeEventsStmt = database.connection.prepareStatement(removeEventSql);
-            removeEventsStmt.setString(1,personId);
+            removeEventsStmt.setString(1, personId);
             removeEventsStmt.executeUpdate();
             removeEventsStmt.close();
             toReturn = "success";
@@ -137,17 +152,17 @@ public class EventDao {
         PreparedStatement getEventsStmt = null;
         ResultSet resultSet = null;
         try{
-            String getEventsSql = "select * from Event where DESCENDANTID = ?";
+            String getEventsSql = "select * from Event where DESCENDANT = ?";
             getEventsStmt = database.connection.prepareStatement(getEventsSql);
             getEventsStmt.setString(1,username);
             resultSet = getEventsStmt.executeQuery();
             toReturn = new ArrayList<EventModel>();
             while(resultSet.next()){
                 EventModel eventToAdd = new EventModel();
-                eventToAdd.setEventId(resultSet.getString(1));
-                eventToAdd.setDescendantId(resultSet.getString(2));
+                eventToAdd.setEventID(resultSet.getString(1));
+                eventToAdd.setDescendant(resultSet.getString(2));
                 eventToAdd.setEventType(resultSet.getString(3));
-                eventToAdd.setPersonId(resultSet.getString(4));
+                eventToAdd.setPersonID(resultSet.getString(4));
                 eventToAdd.setLatitude(resultSet.getDouble(5));
                 eventToAdd.setLongitude(resultSet.getDouble(6));
                 eventToAdd.setCountry(resultSet.getString(7));
@@ -175,10 +190,10 @@ public class EventDao {
             toReturn = new ArrayList<EventModel>();
             while(resultSet.next()){
                 EventModel toAdd = new EventModel();
-                toAdd.setEventId(resultSet.getString(1));
-                toAdd.setDescendantId(resultSet.getString(2));
+                toAdd.setEventID(resultSet.getString(1));
+                toAdd.setDescendant(resultSet.getString(2));
                 toAdd.setEventType(resultSet.getString(3));
-                toAdd.setPersonId(resultSet.getString(4));
+                toAdd.setPersonID(resultSet.getString(4));
                 toAdd.setLatitude(resultSet.getDouble(5));
                 toAdd.setLongitude(resultSet.getDouble(6));
                 toAdd.setCountry(resultSet.getString(7));
@@ -206,10 +221,10 @@ public class EventDao {
             resultSet = getEventStmt.executeQuery();
             toReturn = new EventModel();
             while(resultSet.next()){
-                toReturn.setEventId(resultSet.getString(1));
-                toReturn.setDescendantId(resultSet.getString(2));
+                toReturn.setEventID(resultSet.getString(1));
+                toReturn.setDescendant(resultSet.getString(2));
                 toReturn.setEventType(resultSet.getString(3));
-                toReturn.setPersonId(resultSet.getString(4));
+                toReturn.setPersonID(resultSet.getString(4));
                 toReturn.setLatitude(resultSet.getDouble(5));
                 toReturn.setLongitude(resultSet.getDouble(6));
                 toReturn.setCountry(resultSet.getString(7));
@@ -220,7 +235,8 @@ public class EventDao {
             return toReturn;
         }
         catch(SQLException e){
-            System.out.println("EventDAo getEventbyID sql exception:   " + e.getMessage());
+            System.out.println("EventDAO getEventbyID sql exception:   " + e.getMessage());
+            e.printStackTrace();
             return null;
 
         }

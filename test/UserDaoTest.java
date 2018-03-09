@@ -49,7 +49,7 @@ public class UserDaoTest {
             assertEquals(model1.getFirstName(),model2.getFirstName());
             assertEquals(model1.getLastName(), model2.getLastName());
             assertEquals(model1.getGender(), model2.getGender());
-            assertEquals(model1.getPersonId(), model2.getPersonId());
+            assertEquals(model1.getPersonID(), model2.getPersonID());
     }
 
     @Test

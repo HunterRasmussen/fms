@@ -37,16 +37,16 @@ public class EventDaoTest {
     @Test
     public void testAddEvent(){
         String addResult = theDatabase.eventsTable.addEvent(model1);
-        assertEquals(addEventResult.event.getEventId(), "EventId1");
+        assertEquals(addEventResult.event.getEventID(), "EventId1");
         assertEquals(addEventResult.getSuccessFlag(), true);
-        assertEquals(addEventResult.event.getPersonId(), "PersonId2");
+        assertEquals(addEventResult.event.getPersonID(), "PersonId2");
         assertEquals(addEventResult.event.getLatitude(), 1122);
     }
 
     @Test
     public void testGetEventsByPersonId(){
-        getEventsByPersonID = theDatabase.eventsTable.getEventbyPersonId(model1.getPersonId());
-        assertEquals( getEventsByPersonID.get(0).getDescendantId(), "descendantId");
+        getEventsByPersonID = theDatabase.eventsTable.getEventbyPersonId(model1.getPersonID());
+        assertEquals( getEventsByPersonID.get(0).getDescendant(), "descendantId");
         assertEquals(getEventsByPersonID.size() , 2);
     }
 
@@ -59,8 +59,8 @@ public class EventDaoTest {
     @Test
     public void testGetEventByEventId(){
         model2 = theDatabase.eventsTable.getEventbyEventID("EventId1");
-        assertEquals(model2.getEventId(), "EventId1");
-        assertEquals(model2.getPersonId(), model1.getPersonId());
+        assertEquals(model2.getEventID(), "EventId1");
+        assertEquals(model2.getPersonID(), model1.getPersonID());
         assertEquals(model2.getCity(), model1.getCity());
 
     }

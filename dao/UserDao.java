@@ -46,12 +46,12 @@ public class UserDao {
             addUserStmt.setString(4,toAdd.getFirstName());
             addUserStmt.setString(5,toAdd.getLastName());
             addUserStmt.setString(6,Character.toString(toAdd.getGender()));
-            addUserStmt.setString(7,toAdd.getPersonId());
+            addUserStmt.setString(7,toAdd.getPersonID());
 
             if(addUserStmt.executeUpdate() == 1){
                 toReturn.setSuccessFlag(true);
                 toReturn.setUserName(toAdd.getUserName());
-                toReturn.setPersonId(toAdd.getPersonId());
+                toReturn.setPersonId(toAdd.getPersonID());
                 return toReturn;
 
             }
@@ -83,7 +83,7 @@ public class UserDao {
             removeUserStmt.setString(1,userName);
             removeUserStmt.executeUpdate();
             removeUserStmt.close();
-            toReturn = "good";
+            toReturn = "success";
         }
         catch(SQLException e){
             toReturn = e.getMessage();
@@ -96,6 +96,21 @@ public class UserDao {
     }
 
 
+    public String removeAllUsers(){
+        PreparedStatement removeAllStmt = null;
+        try{
+            String removeAllSql = "delete from User";
+            removeAllStmt = database.connection.prepareStatement(removeAllSql);
+            removeAllStmt.executeUpdate();
+            removeAllStmt.close();
+            return "success";
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+            return e.getMessage();
+        }
+    }
+
     /**
      * Gets a user and it's info from the table and returns it in a userModel object.
      */
@@ -104,7 +119,7 @@ public class UserDao {
         UserModel toReturn = null;
         ResultSet results =  null;
         try{
-            String getUserSql = "select * from users where USERNAME = ?";
+            String getUserSql = "select * from User where USERNAME = ?";
             getUserStmt = database.connection.prepareStatement(getUserSql);
             getUserStmt.setString(1,username);
             results = getUserStmt.executeQuery();
@@ -117,21 +132,15 @@ public class UserDao {
                 toReturn.setFirstName(results.getString(4));
                 toReturn.setLastName(results.getString(5));
                 toReturn.setGender(results.getString(6).charAt(0));
-                toReturn.setPersonId(results.getString(7));
-
+                toReturn.setPersonID(results.getString(7));
+                return toReturn;
             }
         }
         catch(SQLException e){
-            toReturn = null;
-            System.out.println("Error with getting a user from the database.  ");
-            if (e.getMessage().contains("column USERNAME is not unique")){
-                toReturn = new UserModel();
-                toReturn.setUserName("column USERNAME is not unique");
-            }
             e.printStackTrace();
             System.out.println(e.getMessage());
-            return toReturn;
-        }
+            return null;
+            }
         return toReturn;
     }
 
@@ -143,10 +152,7 @@ public class UserDao {
      */
     String updateUser(UserModel toUpdate){
         //UserModel currentInfo = getUser(toUpdate.getUsername());
-
-
-
-        return "";
+        return null;
     }
 
 }

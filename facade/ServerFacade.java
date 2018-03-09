@@ -1,9 +1,11 @@
 package fms.facade;
 
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 
-import java.awt.Event;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -18,8 +20,6 @@ import fms.models.EventModel;
 import fms.models.PersonModel;
 import fms.models.UserModel;
 import fms.results.LoginRegisterResult;
-import fms.results.SinglePersonResult;
-import fms.services.SinglePerson;
 
 /**
  * This class contains all the methods to which access use the DAO's to add and get data from the database.
@@ -174,6 +174,8 @@ public class ServerFacade {
         System.out.println("Locations Loaded");
     }
 
+
+
     public String createAuthToken(String username){
         String chars = "abccdefghijklnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         StringBuilder authTokBuild = new StringBuilder(username + "_");
@@ -192,16 +194,58 @@ public class ServerFacade {
         return toReturn;
     }
 
+    public String checkRegisteredUser(String userName){
+        UserModel user = database.usersTable.getUser(userName);
+        if (user == null){
+            return "Error.  Couldn't find that userName.  Is that userName registered?";
+        }
+        else{
+            return "success";
+        }
+    }
+
+    public String checkValidAuthToken(String authTok){
+        return database.authTokTable.getUser(authTok);
+
+    }
+
+
+
+
+ //------------------------------------------- login ------------------------------------------//
+    public LoginRegisterResult loginUser(String userName, String password){
+        UserModel user = database.usersTable.getUser(userName);
+        LoginRegisterResult toReturn = new LoginRegisterResult();
+        if(user == null){
+            toReturn.setSuccessFlag(false);
+            toReturn.setErrorMessage("Invalid Username.  Not in database");
+            return toReturn;
+        }
+        if(!password.equals(user.getPassword())){
+            toReturn.setSuccessFlag(false);
+            toReturn.setErrorMessage("Incorrect password.");
+            return toReturn;
+        }
+        else{
+            AuthTokModel toAdd = new AuthTokModel(createAuthToken(user.getUserName()), user.getUserName(), user.getPersonID());
+            toReturn = database.authTokTable.addAuthTok(toAdd);
+            return toReturn;
+        }
+    }
+
+ //--------
+ //
+ // ----------------------------------- register ------------------------------------------//
     public LoginRegisterResult registerUser(UserModel user){
-        user.setPersonId(generatePersonId(user.getUserName()));
+        user.setPersonID(generatePersonId(user.getUserName()));
         LoginRegisterResult addUserResult = new LoginRegisterResult();
-        PersonModel toAdd = new PersonModel(user.getPersonId(), user.getUserName(), user.getFirstName(), user.getLastName(), user.getGender(), null, null, null);
+        PersonModel toAdd = new PersonModel(user.getPersonID(), user.getUserName(), user.getFirstName(), user.getLastName(), user.getGender(), null, null, null);
         try{
             addUserResult = database.usersTable.addUser(user);
             if(addUserResult.isSuccessFlag()){
                 String addPersonResult = database.personTable.addPerson(toAdd);
                 if(addPersonResult.contains("success")) {
-                    AuthTokModel authTokModel = new AuthTokModel(createAuthToken(user.getUserName()), user.getUserName(), user.getPersonId());
+                    AuthTokModel authTokModel = new AuthTokModel(createAuthToken(user.getUserName()), user.getUserName(), user.getPersonID());
                     addUserResult = database.authTokTable.addAuthTok(authTokModel);
                     this.fill(4,user.getUserName(), toAdd);
                 }
@@ -222,74 +266,234 @@ public class ServerFacade {
         }
     }
 
+
+
+ //------------------------------------------- fill ------------------------------------------//
     public String fill(int numberOfGenerations, String userName, PersonModel startingPerson){
         if(numberOfGenerations == 0) return "Successfully added " + 0 + " persons and " + 0 + " events to the database.";
+        if (startingPerson == null){
+            startingPerson = this.getPersonFromUsername(userName);
+            if(startingPerson == null){
+                return " error. couldn't find person with that username in database";
+            }
+        }
 
-        int personCount = 1;
-        int eventCount = 0;
+
+
 
         //remove current events for the StartingPerson;
-        String result = database.eventsTable.removeEventsbyPersonId(startingPerson.getPersonId());
+        String result = database.eventsTable.removeEventsbyDescendant(userName);
         if(result != "success"){
             return result;
         }
         //remove current associated People from StartingPerson
-        result = database.personTable.removePersonsByDescendantId(userName);
+        result = database.personTable.removePersonsByDescendant(userName);
         if(result != "success"){
             return result;
         }
+        int personCount = 1;
+        int eventCount = 0;
 
+        String addPersonResult = database.personTable.addPerson(startingPerson);
         //generate events for starting person
-        String UserDataResult = generateUserData(userName,startingPerson.getPersonId());
+        String UserDataResult = generateUserData(userName,startingPerson.getPersonID());
         if(!UserDataResult.equals("success")){
             return UserDataResult;
         }
         eventCount += 2;
-        
-        String generateParentsResult = generateParents(userName, startingPerson);
-        if(generateParentsResult.contains("success")){
-            if(generateParentsResult.contains("6")){
-                eventCount+=6;
-            }
-            if(generateParentsResult.contains("7")){
-                eventCount+=7;
-            }
-            if(generateParentsResult.contains("8")){
-                eventCount+=8;
-            }
-            personCount+=2;
+        int ancestorsResult =  createAncestry_r( userName, startingPerson, 0, numberOfGenerations);
+        if(ancestorsResult == -1){
+            return "Error in geneerating ancestry.  Try again later";
         }
+        personCount += calculateNumberofPeople(numberOfGenerations);
+        eventCount+= ancestorsResult;
+       return "successfully added " + eventCount + " events and " + personCount + " people";
+    }
+
+    //returns total events created
+    private int createAncestry_r(String descendant, PersonModel child, Integer currentGeneration, int generationMax){
+        if(currentGeneration >= generationMax){
+            return 0;
+        }
+        String result = generateParents(descendant, child);
+        if(!result.equals("success")){
+            return -1;
+        }
+        int count = 0;
+        result = generateParentLifeEvents(child.getFatherID(), child.getMotherID(), child.getPersonID(), descendant);
+        if(result.contains("Error")){
+            return -1;
+        }
+        if(result.contains("6")){
+            count += 6;
+        }
+        else if(result.contains("7")){
+            count += 7;
+        }
+        else if (result.contains("8")){
+            count += 8;
+        }
+        PersonModel father = database.personTable.getPerson(child.getFatherID());
+        PersonModel mother = database.personTable.getPerson(child.getMotherID());
+        int fatherAncestryResult = createAncestry_r(descendant,  father , currentGeneration+1, generationMax);
+        int  motherAncestryResult = createAncestry_r(descendant,  mother , currentGeneration+1, generationMax);
+        if(fatherAncestryResult == -1){
+            return fatherAncestryResult;
+        }
+        count += fatherAncestryResult;
+        if(motherAncestryResult == -1){
+            return motherAncestryResult;
+        }
+        count += motherAncestryResult;
+        return count;
+    }
+
+    private int calculateNumberofPeople(int maxGenerations){
+        int personCount = 0;
+        for(int i = 1; i <= maxGenerations; i++){
+            personCount += Math.pow(2,i);
+            //System.out.println("CurrentPerson count in calculating = " + personCount);
+        }
+        return personCount;
+    }
+
+    /**gets a person model out of a username
+    *first grabs the user from user table
+    *then grabs the person out of the persontable using that personId
+    * */
+    private PersonModel getPersonFromUsername(String userName){
+        UserModel user = database.usersTable.getUser(userName);
+        if (user == null){
+            return null;
+        }
+        PersonModel personToReturn = database.personTable.getPerson(user.getPersonID());
+        return personToReturn;
+    }
+
+
+
+ //------------------------------------------- load ------------------------------------------//
+    public String load(JsonReader reader){
+        int userCount = 0;
+        int personCount = 0;
+        int eventCount = 0;
+        Gson gson = new Gson();
+        LoadRequest dataToAdd = gson.fromJson(reader,LoadRequest.class);
+        for (UserModel user : dataToAdd.users){
+            try{
+                LoginRegisterResult result = database.usersTable.addUser(user);
+                if(!result.isSuccessFlag()){
+                    return result.getErrorMessage();
+                }
+                userCount++;
+            }
+            catch (SQLException e){
+                e.printStackTrace();
+                return e.getMessage();
+            }
+        }
+        for(PersonModel person : dataToAdd.persons){
+            String result = database.personTable.addPerson(person);
+            if(!result.equals("success")){
+                return result;
+            }
+            personCount++;
+        }
+        for(EventModel event : dataToAdd.events){
+            String result = database.eventsTable.addEvent(event);
+            if(!result.equals("success")){
+                return result;
+            }
+            eventCount ++;
+        }
+        return "Successfully added " + userCount + " users, " + personCount + " people and " + eventCount + " events";
+    }
 
 
 
 
-        return null;
+ //------------------------------------------- person ------------------------------------------//
+    public PersonModel getSinglePerson(String userName, String personId){
+       PersonModel person = database.personTable.getPerson(personId);
+       if(person == null){
+           return person;
+       }
+       if(!person.getDescendant().equals(userName)){
+            person.setFirstName("invalid");
+       }
+       return person;
+    }
+
+    public List<PersonModel> getAllPeople(String userName){
+        List<PersonModel> ancestors = database.personTable.getAllPeopleByUserName(userName);
+        return ancestors;
+    }
+
+
+ //------------------------------------------- event ------------------------------------------//
+    public EventModel getSingleEvent(String userName, String eventID){
+        EventModel event = database.eventsTable.getEventbyEventID(eventID);
+        if(event == null){
+            return null;
+        }
+        if(!event.getDescendant().equals(userName)){
+            event.setEventID("invalid");
+        }
+        return event;
+    }
+
+    public List<EventModel> getAllEvents(String userName){
+        List<EventModel> events = database.eventsTable.getAllEventsByUsername(userName);
+        return events;
+    }
+
+
+ //------------------------------------------- clear ------------------------------------------//
+    public String clearDatabase(){
+        String result = database.usersTable.removeAllUsers();
+        if(!result.equals("success")){
+            return result;
+        }
+        result = database.personTable.removeAllPersons();
+        if(!result.equals("success")){
+            return result;
+        }
+        result = database.eventsTable.removeAllEvents();
+        if(!result.equals("success")){
+            return result;
+        }
+        result = database.authTokTable.removeAllTokens();
+        return result;
 
     }
+
+
+
+
 
     //----------------------------------- GET JSON METHODS -------------------------------------//
         //contains all the methods for getting values originally from the json files
 
 
-    Location getRandomLocation(){
+    private Location getRandomLocation(){
         Random rand = new Random();
         int index = rand.nextInt(locations.size());//gives a random number inbetween 0 and the length of the locations arrayList
         Location toReturn = locations.get(index);
         return toReturn;
     }
-    String getRandomFemaleName(){
+    private String getRandomFemaleName(){
         Random rand = new Random();
         int index = rand.nextInt(femaleNames.size());
         String toReturn = femaleNames.get(index);
         return toReturn;
     }
-    String getRandomMaleName(){
+    private String getRandomMaleName(){
         Random rand = new Random();
         int index = rand.nextInt(maleNames.size());
         String toReturn = maleNames.get(index);
         return toReturn;
     }
-    String getRandomLastName(){
+    private String getRandomLastName(){
         Random rand = new Random();
         int index = rand.nextInt(lastNames.size());
         String toReturn = lastNames.get(index);
@@ -297,62 +501,58 @@ public class ServerFacade {
     }
 
 
-    //-------------------------------------  GENERATE METHODS ---------------------------------------//
+    //-------------------------------------  GENERATE METHODS ------------------------------------//
     //all the methods required for the fill method above
 
     //generates parents, and events for each of them, for the given user
-    String generateParents(String userName, PersonModel child){
+    private String generateParents(String userName, PersonModel child){
         PersonModel mother = new PersonModel();
         PersonModel father = new PersonModel();
-        father.setDescendantId(userName);
+        father.setDescendant(userName);
         father.setFirstName(getRandomMaleName());
         father.setLastName(child.getLastName());
         father.setGender('m');
-        father.setPersonId(generatePersonId(father.getFirstName()+ "_" + father.getLastName()));
-        mother.setDescendantId(userName);
+        father.setPersonID(generatePersonId(father.getFirstName()+ "_" + father.getLastName()));
+        mother.setDescendant(userName);
         mother.setFirstName(getRandomFemaleName());
         mother.setLastName(getRandomLastName());
         mother.setGender('f');
-        mother.setPersonId(generatePersonId(mother.getFirstName() + "_" + mother.getLastName()));
-        father.setSpouseId(mother.getPersonId());
-        mother.setSpouseId(father.getPersonId());
-        String lifeEventsresult = generateParentLifeEvents(father, mother, child, userName);
+        mother.setPersonID(generatePersonId(mother.getFirstName() + "_" + mother.getLastName()));
+        father.setSpouseID(mother.getPersonID());
+        mother.setSpouseID(father.getPersonID());
+        //String lifeEventsresult = generateParentLifeEvents(father, mother, child, userName);
         //if adding life events failed for whatever reason, just return that reason;
-        if(!lifeEventsresult.contains("success")){
-            return lifeEventsresult;
-        }
-
+        //if(!lifeEventsresult.contains("success")){
+            //return lifeEventsresult;
+        //}
+        // add father to Database
         String addFatherResult = database.personTable.addPerson(father);
         if(!addFatherResult.equals("success")){
             return addFatherResult;
         }
+        //add Mother to database
         String addMotherResult = database.personTable.addPerson(mother);
         if(!addMotherResult.equals("success")){
             return addMotherResult;
         }
-        child.setFatherId(father.getPersonId());
-        child.setMotherId(mother.getPersonId());
 
-        if(lifeEventsresult.contains("7")){
-            return "success.  7 events and two parents added";
-        }
-        else if (lifeEventsresult.contains("8")){
-            return  "success. 8 events and two parents added";
-        }
-        return "Failure.  Neither 7 nor 8 events were created.  But that error didn't come up when returning from " +
-                    "generateParentLifeEvents.  So look into this";
+        //assign the parents to the child
+        child.setFatherID(father.getPersonID());
+        child.setMotherID(mother.getPersonID());
+        String updateParentsResult = database.personTable.updateParents(child);
+        return updateParentsResult;
 
     }
 
-    String generateParentLifeEvents(PersonModel father, PersonModel mother, PersonModel child, String descendant){
-        List<EventModel> childEvents = database.eventsTable.getEventbyPersonId(child.getPersonId());
+    private String generateParentLifeEvents(String fatherId, String motherId, String childId, String descendant){
+        List<EventModel> childEvents = database.eventsTable.getEventbyPersonId(childId);
         if(childEvents.size() == 0 || childEvents == null){
             return "failure.  In generateParentLifeEvents, the child didn't have any events." +
                     "  Perhaps the child didn't have life events generated for him/her yet";
         }
         int childBirthYear = -1;
         for(EventModel event : childEvents){
-            if (event.getEventType() == "BIRTH"){
+            if (event.getEventType().equals("BIRTH")){
                 childBirthYear = event.getYear();
             }
         }
@@ -371,21 +571,21 @@ public class ServerFacade {
 
         List<EventModel> parentEvents = new ArrayList<EventModel>();
 
-        parentEvents.add(generateEvent(father, "BIRTH", descendant, fatherBirthYear, null));
-        parentEvents.add(generateEvent(mother, "BIRTH", descendant, motherBirthYear, null));
-        parentEvents.add(generateEvent(father, "BAPTISM", descendant, fatherBirthYear+8, null));
-        parentEvents.add(generateEvent(mother, "BAPTISM" , descendant, motherBirthYear+8, null));
-        parentEvents.add(generateEvent(father, "MARRIAGE", descendant, marriageYear, marriageLocation));
-        parentEvents.add(generateEvent(mother, "MARRIAGE", descendant, marriageYear, marriageLocation));
+        parentEvents.add(generateEvent(fatherId, "BIRTH", descendant, fatherBirthYear, null));
+        parentEvents.add(generateEvent(motherId, "BIRTH", descendant, motherBirthYear, null));
+        parentEvents.add(generateEvent(fatherId, "BAPTISM", descendant, fatherBirthYear+8, null));
+        parentEvents.add(generateEvent(motherId, "BAPTISM" , descendant, motherBirthYear+8, null));
+        parentEvents.add(generateEvent(fatherId, "MARRIAGE", descendant, marriageYear, marriageLocation));
+        parentEvents.add(generateEvent(motherId, "MARRIAGE", descendant, marriageYear, marriageLocation));
         EventModel fatherDeath = null;
         EventModel motherDeath = null;
         Calendar currentDate = Calendar.getInstance();
         int currentYear = currentDate.get(Calendar.YEAR);
         if(currentYear > fatherDeathYear){
-            parentEvents.add(generateEvent(father, "DEATH", descendant, fatherDeathYear, null));
+            parentEvents.add(generateEvent(fatherId, "DEATH", descendant, fatherDeathYear, null));
         }
         if(currentYear > motherDeathYear){
-            parentEvents.add(generateEvent(mother, "DEATH", descendant, motherDeathYear, null));
+            parentEvents.add(generateEvent(motherId, "DEATH", descendant, motherDeathYear, null));
         }
         //add all the events
         int numAdded = addEvents(parentEvents);
@@ -407,7 +607,7 @@ public class ServerFacade {
         }
     }
 
-    int addEvents(List<EventModel> eventList){
+    private int addEvents(List<EventModel> eventList){
         int count = 0;
         for(EventModel event : eventList){
             String results = database.eventsTable.addEvent(event);
@@ -420,17 +620,17 @@ public class ServerFacade {
         return count;
     }
 
-    EventModel generateEvent(PersonModel person, String eventType, String descendantId , int year, Location eventLocation){
+    private EventModel generateEvent(String personId, String eventType, String descendant , int year, Location eventLocation){
         if(eventLocation == null){
             eventLocation = getRandomLocation();
         }
-        EventModel toReturn = new EventModel(person.getPersonId()+"_"+eventType, descendantId,
-                person.getPersonId(), eventLocation.latitude, eventLocation.longitude, eventLocation.country, eventLocation.city, eventType, year);
+        EventModel toReturn = new EventModel(personId+"_"+eventType, descendant,
+                personId, eventLocation.latitude, eventLocation.longitude, eventLocation.country, eventLocation.city, eventType, year);
         return toReturn;
     }
 
     //creates and adds a birth event and a baptism event for the user
-    String generateUserData(String userName, String personId){
+    private String generateUserData(String userName, String personId){
         int yearOfBirth =  getUserBirthYear();
         String eventIdToAdd = userName + "_birth";
         Location birthLocation = getRandomLocation();
@@ -453,7 +653,7 @@ public class ServerFacade {
     }
 
     //returns a random year from 10 to 25 years ago.
-    int getUserBirthYear(){
+    private int getUserBirthYear(){
         Calendar currentDate = Calendar.getInstance();
         int currentYear = currentDate.get(Calendar.YEAR);
         Random rand = new Random();
@@ -461,7 +661,7 @@ public class ServerFacade {
         return currentYear - presentAge; // return birth year
     }
 
-    int generateYear(int min, int max){ // generates a random number inbetween two numbers.
+    private int generateYear(int min, int max){ // generates a random number inbetween two numbers.
         Random r = new Random();
         int toReturn = r.nextInt(max-min) + min;
         return toReturn;

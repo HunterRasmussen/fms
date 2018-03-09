@@ -3,7 +3,10 @@ package fms.dao;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
+import fms.models.EventModel;
 import fms.models.PersonModel;
 import fms.results.SinglePersonResult;
 
@@ -31,19 +34,20 @@ public class PersonDao {
      */
     public String addPerson(PersonModel toAdd ){
         PreparedStatement addPersonStmt = null;
-        String addPersonSql = "insert into Person (PERSONID, DESCENDANTID, FIRSTNAME, LASTNAME," +
+        String addPersonSql = "insert into Person (PERSONID, DESCENDANT, FIRSTNAME, LASTNAME," +
                 " GENDER, FATHERID, MOTHERID, SPOUSEID) VALUES(?,?,?,?,?,?,?,?)";
         String toReturn = null;
 
         try{
             addPersonStmt = database.connection.prepareStatement(addPersonSql);
-            addPersonStmt.setString(1, toAdd.getPersonId());
-            addPersonStmt.setString(2, toAdd.getDescendantId());
+            addPersonStmt.setString(1, toAdd.getPersonID());
+            addPersonStmt.setString(2, toAdd.getDescendant());
             addPersonStmt.setString(3, toAdd.getFirstName());
             addPersonStmt.setString(4, toAdd.getLastName());
             addPersonStmt.setString(5, Character.toString(toAdd.getGender()));
-            addPersonStmt.setString(6, toAdd.getFatherId());
-            addPersonStmt.setString(7, toAdd.getMotherId());
+            addPersonStmt.setString(6, toAdd.getFatherID());
+            addPersonStmt.setString(7, toAdd.getMotherID());
+            addPersonStmt.setString(8, toAdd.getSpouseID());
 
             if(addPersonStmt.executeUpdate() == 1){
 
@@ -62,8 +66,6 @@ public class PersonDao {
         toReturn = "Got to the end of the method.  Shouldn't have.  Look into this";
         return toReturn;
     }
-
-
 
     /**
      *
@@ -89,13 +91,14 @@ public class PersonDao {
 
     }
 
-    public String removePersonsByDescendantId(String userName){
+    public String removePersonsByDescendant(String userName){
         PreparedStatement removePersonStmt = null;
         String toReturn;
         try{
-            String removePersonSql = "delete from Person where DESCENDANTID = ?";
+            String removePersonSql = "delete from Person where descendant = ?";
             removePersonStmt = database.connection.prepareStatement(removePersonSql);
             removePersonStmt.setString(1,userName);
+            removePersonStmt.executeUpdate();
             removePersonStmt.close();
             toReturn= "success";
             return toReturn;
@@ -107,6 +110,21 @@ public class PersonDao {
         }
     }
 
+    public String removeAllPersons(){
+        PreparedStatement removeAllPersonsStmt = null;
+        try{
+            String removeAllPersonsSql = "delete from Person";
+            removeAllPersonsStmt = database.connection.prepareStatement(removeAllPersonsSql);
+            removeAllPersonsStmt.executeUpdate();
+            removeAllPersonsStmt.close();
+            return "success";
+
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+            return e.getMessage();
+        }
+    }
 
     /**
      * Gets a person and it's info from the table and returns it in a PersonModel object.
@@ -122,14 +140,15 @@ public class PersonDao {
             results  = getPersonStmt.executeQuery();
             toReturn = new PersonModel();
             while(results.next()){
-                toReturn.setPersonId(results.getString(1));
-                toReturn.setDescendantId(results.getString(2));
+                toReturn.setPersonID(results.getString(1));
+                toReturn.setDescendant(results.getString(2));
                 toReturn.setFirstName(results.getString(3));
                 toReturn.setLastName(results.getString(4));
                 toReturn.setGender(results.getString(5).charAt(0));
-                toReturn.setFatherId(results.getString(6));
-                toReturn.setMotherId(results.getString(7));
-                toReturn.setSpouseId(results.getString(8));
+                toReturn.setFatherID(results.getString(6));
+                toReturn.setMotherID(results.getString(7));
+                toReturn.setSpouseID(results.getString(8));
+                return toReturn;
             }
         }
         catch(SQLException e){
@@ -138,6 +157,37 @@ public class PersonDao {
             return null;
         }
         return null;
+    }
+
+    public List<PersonModel> getAllPeopleByUserName(String userName){
+        List<PersonModel> toReturn = null;
+        PreparedStatement getPeopleStmt = null;
+        ResultSet resultSet = null;
+        try{
+            String getPeopleSql = "select * from Person where DESCENDANT = ?";
+            getPeopleStmt = database.connection.prepareStatement(getPeopleSql);
+            getPeopleStmt.setString(1,userName);
+            resultSet = getPeopleStmt.executeQuery();
+            toReturn = new ArrayList<PersonModel>();
+            while(resultSet.next()){
+                PersonModel personToAdd = new PersonModel();
+                personToAdd.setPersonID(resultSet.getString(1));
+                personToAdd.setDescendant(resultSet.getString(2));
+                personToAdd.setFirstName(resultSet.getString(3));
+                personToAdd.setLastName(resultSet.getString(4));
+                personToAdd.setGender(resultSet.getString(5).charAt(0));
+                personToAdd.setFatherID(resultSet.getString(6));
+                personToAdd.setMotherID(resultSet.getString(7));
+                personToAdd.setSpouseID(resultSet.getString(8));
+                toReturn.add(personToAdd);
+            }
+            return toReturn;
+        }
+        catch (SQLException e){
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 
 
@@ -149,24 +199,19 @@ public class PersonDao {
     public String updateParents(PersonModel toUpdate){
         PreparedStatement updatePersonStmt = null;
         try{
-            String updatePersonSql = "UPDATE Person" +
-                    "SET FATHERID = \'" + toUpdate.getFatherId() + "\'," +
-                    "MOTHERID = \'" + toUpdate.getMotherId() + "\' " +
-                    "WHERE PERSONID = \'" + toUpdate.getPersonId() + "\';";
+            String updatePersonSql = "UPDATE Person SET FATHERID = ? , MOTHERID = ? WHERE PERSONID =?";
             updatePersonStmt = database.connection.prepareStatement(updatePersonSql);
-            if(updatePersonStmt.executeUpdate() == 1){
+            updatePersonStmt.setString(1,toUpdate.getFatherID());
+            updatePersonStmt.setString(2, toUpdate.getMotherID());
+            updatePersonStmt.setString(3 ,toUpdate.getPersonID());
+            updatePersonStmt.executeUpdate();
                 if(updatePersonStmt != null){
                     updatePersonStmt.close();
                 }
                 return "success";
-            }
-
         }
         catch(SQLException e){
             return e.getMessage();
         }
-
-        return "Error.  Got to the end of updateParents method in PersonDao." +
-                "  Didn't account for that.  Use breakpoints and replicate last attempt.";
     }
 }

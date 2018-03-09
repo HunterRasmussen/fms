@@ -66,7 +66,7 @@ public class Database {
 
         String createPersonTable = "create table if not exists Person\n" +
                 "    (PERSONID text  PRIMARY KEY,\n" +
-                "    DESCENDANTID text NOT NULL,\n" +
+                "    DESCENDANT text NOT NULL,\n" +
                 "    FIRSTNAME text NOT NULL,\n" +
                 "    LASTNAME text NOT NULL,\n" +
                 "    GENDER char NOT NULL,\n" +
@@ -76,7 +76,7 @@ public class Database {
 
         String createEventTable = "create table if not exists Event\n" +
                 "    (EVENTID text PRIMARY KEY,\n" +
-                "    DESCENDANTID TEXT NOT NULL,\n" +
+                "    DESCENDANT TEXT NOT NULL,\n" +
                 "    EVENTTYPE text NOT NULL,\n" +
                 "    PERSONID TEXT NOT NULL,\n" +
                 "    LATITUDE REAL NOT NULL,\n" +

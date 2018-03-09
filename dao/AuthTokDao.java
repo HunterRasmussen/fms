@@ -48,7 +48,7 @@ public class AuthTokDao {
             toReturn.setErrorMessage("failure");
             return toReturn;
         }
-        toReturn.setErrorMessage("Got to the end of the method.  Shouldn't have.");
+        toReturn.setErrorMessage("Error.  Got to the end of the method.  Shouldn't have");
         return toReturn;
     }
 
@@ -79,6 +79,21 @@ public class AuthTokDao {
         return "Got to the end of the removeAuthTok from authTok table.  Shouldn't";
     }
 
+    public String removeAllTokens(){
+        PreparedStatement removeAll = null;
+        try{
+            String removeAllTokensSql = "delete from AuthTok";
+            removeAll = database.connection.prepareStatement(removeAllTokensSql);
+            removeAll.executeUpdate();
+            removeAll.close();
+            return "success";
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+            return e.getMessage();
+        }
+    }
+
     /**
      * Gets a username from the table and returns it
      */
@@ -94,14 +109,13 @@ public class AuthTokDao {
             resultSet = getUserStmt.executeQuery();
             while(resultSet.next()){
                 toReturn = resultSet.getString(1);
-
+                return toReturn;
             }
             getUserStmt.close();
-            return toReturn;
         }
         catch(SQLException e){
             return "failure";
         }
-        //return "Got to the end of getUser in AuthTok table.  SHouldn't have.  Check this out.";
+        return null;
     }
 }

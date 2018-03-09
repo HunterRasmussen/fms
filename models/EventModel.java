@@ -6,12 +6,12 @@ package fms.models;
 
 public class EventModel {
 
-    public EventModel(String EventId, String descendantId, String personId , double latitude, double longitude,
+    public EventModel(String EventID, String descendant, String personID , double latitude, double longitude,
                       String country , String city , String eventType , int year){
 
-        this.EventId = EventId;
-        this.descendantId = descendantId;
-        this.personId = personId;
+        this.EventID = EventID;
+        this.descendant = descendant;
+        this.personID = personID;
         this.latitude = latitude;
         this.longitude = longitude;
         this.country = country;
@@ -22,9 +22,9 @@ public class EventModel {
     public EventModel(){}; // empty constructor
 
 
-    private String EventId;
-    private String descendantId;
-    private String personId;
+    private String EventID;
+    private String descendant;
+    private String personID;
     private double latitude;
     private double longitude;
     private String country;
@@ -33,28 +33,28 @@ public class EventModel {
     private int year;
 
 
-    public String getEventId() {
-        return EventId;
+    public String getEventID() {
+        return EventID;
     }
 
-    public void setEventId(String eventId) {
-        EventId = eventId;
+    public void setEventID(String eventID) {
+        EventID = eventID;
     }
 
-    public String getDescendantId() {
-        return descendantId;
+    public String getDescendant() {
+        return descendant;
     }
 
-    public void setDescendantId(String descendantId) {
-        this.descendantId = descendantId;
+    public void setDescendant(String descendant) {
+        this.descendant = descendant;
     }
 
-    public String getPersonId() {
-        return personId;
+    public String getPersonID() {
+        return personID;
     }
 
-    public void setPersonId(String personId) {
-        this.personId = personId;
+    public void setPersonID(String personID) {
+        this.personID = personID;
     }
 
     public double getLatitude() {

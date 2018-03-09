@@ -8,44 +8,44 @@ public class PersonModel {
 
 
 
-    public PersonModel(String personId, String descendantId, String firstName,
-                       String lastName, char gender, String fatherId,
-                       String motherId, String spouseId) {
-        this.descendantId = descendantId;
+    public PersonModel(String personID, String descendant, String firstName,
+                       String lastName, char gender, String fatherID,
+                       String motherID, String spouseID) {
+        this.descendant = descendant;
         this.firstName = firstName;
         this.lastName = lastName;
         this.gender = gender;
-        this.fatherId = fatherId;
-        this.motherId = motherId;
-        this.spouseId = spouseId;
-        this.personId = personId;
+        this.fatherID = fatherID;
+        this.motherID = motherID;
+        this.spouseID = spouseID;
+        this.personID = personID;
     }
     public PersonModel(){} //empty constructor
 
 
-    private String descendantId;
+    private String descendant;
     private String firstName;
     private String lastName;
     private char gender;
-    private String fatherId;
-    private String motherId;
-    private String spouseId;
-    private String personId;
+    private String fatherID;
+    private String motherID;
+    private String spouseID;
+    private String personID;
 
-    public String getPersonId() {
-        return personId;
+    public String getPersonID() {
+        return personID;
     }
 
-    public void setPersonId(String personId) {
-        this.personId = personId;
+    public void setPersonID(String personID) {
+        this.personID = personID;
     }
 
-    public String getDescendantId() {
-        return descendantId;
+    public String getDescendant() {
+        return descendant;
     }
 
-    public void setDescendantId(String descendantId) {
-        this.descendantId = descendantId;
+    public void setDescendant(String descendant) {
+        this.descendant = descendant;
     }
 
     public String getFirstName() {
@@ -72,27 +72,27 @@ public class PersonModel {
         this.gender = gender;
     }
 
-    public String getFatherId() {
-        return fatherId;
+    public String getFatherID() {
+        return fatherID;
     }
 
-    public void setFatherId(String fatherId) {
-        this.fatherId = fatherId;
+    public void setFatherID(String fatherID) {
+        this.fatherID = fatherID;
     }
 
-    public String getMotherId() {
-        return motherId;
+    public String getMotherID() {
+        return motherID;
     }
 
-    public void setMotherId(String motherId) {
-        this.motherId = motherId;
+    public void setMotherID(String motherID) {
+        this.motherID = motherID;
     }
 
-    public String getSpouseId() {
-        return spouseId;
+    public String getSpouseID() {
+        return spouseID;
     }
 
-    public void setSpouseId(String spouseId) {
-        this.spouseId = spouseId;
+    public void setSpouseID(String spouseID) {
+        this.spouseID = spouseID;
     }
 }
