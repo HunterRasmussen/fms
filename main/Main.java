@@ -2,31 +2,24 @@ package fms.main;
 
 import com.google.gson.stream.JsonReader;
 import com.sun.net.httpserver.*;
-import org.junit.runner.JUnitCore;
 import java.io.*;
 import java.net.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+
 import fms.dao.Database;
+import fms.test.UnitTests;
 import fms.facade.ServerFacade;
 import fms.models.AuthTokModel;
 import fms.models.EventModel;
 import fms.models.PersonModel;
 import fms.models.UserModel;
 import fms.results.LoginRegisterResult;
-import fms.test.TestJunit;
 
 import java.util.List;
-import java.util.Random;
 import java.util.Scanner;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 
 
 public class Main {
@@ -37,19 +30,11 @@ public class Main {
     private Gson gson = new Gson();
     private ServerFacade facade;
 
-
-    Connection connection = null;   //------
-    PreparedStatement stmt = null;  //-------
-    ResultSet results = null;       //--------
-
     public static void main(String[] args) throws Exception{
-
-        //Database theDatabase = new Database();
-        //theDatabase.clearDb();
+        UnitTests junitTest = new UnitTests();
+        //junitTest.runUnitTests();
         PORT_NUMBER = Integer.parseInt(args[0]);
         new Main().runServer();
-
-        //new Main().runJunitTests();
     }
 
 
@@ -568,14 +553,4 @@ public class Main {
         return toReturn;
     }
 
-    public void runJunitTests(){
-        JUnitCore.main(
-                "fms.test.TestJunit",
-                "fms.test.AuthTokModelTest",
-                "fms.test.UserDaoTest",
-                "fms.test.EventDaoTest",
-                "fms.test.AuthTokDaoTest",
-                "fms.test.PersonDaoTest"
-        );
-    }
 }

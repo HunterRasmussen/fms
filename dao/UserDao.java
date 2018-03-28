@@ -22,14 +22,7 @@ public class UserDao {
         database = db;
     }
 
-    /**
-     *  This will add a new user to the database
-     *
-     * @param toAdd
-     * @return  The method will create a LoginRegisterResult object
-     *          If the add is successful, it will give it the appropriate data
-     *          If it is unsuccessful, it will mark the flag false and put in a description or the error;
-     */
+
     public LoginRegisterResult addUser(UserModel toAdd) throws SQLException{
 
         PreparedStatement addUserStmt = null;
@@ -52,6 +45,7 @@ public class UserDao {
                 toReturn.setSuccessFlag(true);
                 toReturn.setUserName(toAdd.getUserName());
                 toReturn.setPersonId(toAdd.getPersonID());
+                addUserStmt.close();
                 return toReturn;
 
             }
@@ -133,6 +127,7 @@ public class UserDao {
                 toReturn.setLastName(results.getString(5));
                 toReturn.setGender(results.getString(6).charAt(0));
                 toReturn.setPersonID(results.getString(7));
+                getUserStmt.close();
                 return toReturn;
             }
         }
@@ -142,17 +137,6 @@ public class UserDao {
             return null;
             }
         return toReturn;
-    }
-
-
-    /**
-     * Takes an UserModel object, looks at it's username, then updates the data for that username.
-     *
-     * @return a string detailing success or error
-     */
-    String updateUser(UserModel toUpdate){
-        //UserModel currentInfo = getUser(toUpdate.getUsername());
-        return null;
     }
 
 }

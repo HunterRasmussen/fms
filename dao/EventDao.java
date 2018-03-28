@@ -1,15 +1,12 @@
 package fms.dao;
 
-import java.awt.Event;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import fms.models.EventModel;
-import fms.results.SingleEventResult;
 
 /**
  * This class interacts with the Event database Table
@@ -18,30 +15,20 @@ public class EventDao {
 
     private Database database;
 
-
-    EventDao(Database db){
+    EventDao(Database db) {
         database = db;
     }
 
-
-    /**
-     * Will add a new event to the Event database table.
-     *
-     * @return If adding a person is successful,
-     *              it will create a PersonModel and a Single PersonResult object.
-     *      If it is unsuccessful,
-     *          It will create a SinglePersonResult object and mark the flag false and give an error message
-     */
-    public String addEvent(EventModel toAdd){
+    public String addEvent(EventModel toAdd) {
 
         PreparedStatement addEventStmt = null;
         String addEventSql = "insert into Event (EVENTID, DESCENDANT, EVENTTYPE, PERSONID," +
                 " LATITUDE, LONGITUDE, COUNTRY, CITY, YEAR) VALUES(?,?,?,?,?,?,?,?,?)";
         String toReturn = null;
 
-        try{
+        try {
             addEventStmt = database.connection.prepareStatement(addEventSql);
-            addEventStmt.setString(1,toAdd.getEventID());
+            addEventStmt.setString(1, toAdd.getEventID());
             addEventStmt.setString(2, toAdd.getDescendant());
             addEventStmt.setString(3, toAdd.getEventType());
             addEventStmt.setString(4, toAdd.getPersonID());
@@ -49,89 +36,81 @@ public class EventDao {
             addEventStmt.setDouble(6, toAdd.getLongitude());
             addEventStmt.setString(7, toAdd.getCountry());
             addEventStmt.setString(8, toAdd.getCity());
-            addEventStmt.setInt   (9, toAdd.getYear());
+            addEventStmt.setInt(9, toAdd.getYear());
 
-            if(addEventStmt.executeUpdate() == 1){
-                toReturn = "success";
-                if(addEventStmt != null){
+            if (addEventStmt.executeUpdate() == 1) {
+
+                if (addEventStmt != null) {
                     addEventStmt.close();
                 }
+                toReturn = "success";
                 return toReturn;
             }
-        }
-        catch(SQLException e){
+        } catch (SQLException e) {
             toReturn = e.getMessage();
             return toReturn;
         }
 
-        toReturn = "Got to the end of the addEvent method in the EventDao.  Shouldn't have.  Take a look at it." ;
-        return toReturn;
+        return null;
     }
 
-
     /**
-     *
-     *
      * @return a string declaring wether it succeeded or not.
      */
-    public String removeEvent(String eventId){
+    public String removeEvent(String eventId) {
         PreparedStatement removeEventStmt = null;
         String toReturn;
-        try{
+        try {
             String removeEventSql = "delete from Event where EVENTID = ?";
             removeEventStmt = database.connection.prepareStatement(removeEventSql);
-            removeEventStmt.setString(1,eventId);
+            removeEventStmt.setString(1, eventId);
             removeEventStmt.executeUpdate();
             removeEventStmt.close();
             toReturn = "success";
             return toReturn;
-        }
-        catch(SQLException e){
+        } catch (SQLException e) {
             toReturn = e.getMessage();
             return toReturn;
         }
 
 
-
     }
 
-    public String removeAllEvents(){
+    public String removeAllEvents() {
         PreparedStatement removeAllEventsStmt = null;
-        try{
+        try {
             String removeAllEventsSql = "delete from Event";
             removeAllEventsStmt = database.connection.prepareStatement(removeAllEventsSql);
             removeAllEventsStmt.executeUpdate();
             removeAllEventsStmt.close();
             return "success";
-        }
-        catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
             return e.getMessage();
         }
     }
 
-    public String removeEventsbyDescendant(String Descendant){
+    public String removeEventsbyDescendant(String Descendant) {
         PreparedStatement removeEventsStmt = null;
         String toReturn;
-        try{
+        try {
             String removeEventSql = "delete from Event where DESCENDANT = ?";
             removeEventsStmt = database.connection.prepareStatement(removeEventSql);
-            removeEventsStmt.setString(1,Descendant);
+            removeEventsStmt.setString(1, Descendant);
             removeEventsStmt.executeUpdate();
             removeEventsStmt.close();
             toReturn = "success";
             return toReturn;
-        }
-        catch(SQLException e){
+        } catch (SQLException e) {
             toReturn = e.getMessage();
             return toReturn;
         }
     }
 
-    public String removeEventsbyPersonId(String personId){
+    public String removeEventsbyPersonId(String personId) {
         PreparedStatement removeEventsStmt = null;
         String toReturn;
-        try{
+        try {
             String removeEventSql = "delete from Event where PERSONID = ?";
             removeEventsStmt = database.connection.prepareStatement(removeEventSql);
             removeEventsStmt.setString(1, personId);
@@ -139,25 +118,23 @@ public class EventDao {
             removeEventsStmt.close();
             toReturn = "success";
             return toReturn;
-        }
-        catch(SQLException e){
+        } catch (SQLException e) {
             toReturn = e.getMessage();
             return toReturn;
         }
     }
 
-
-    public List<EventModel> getAllEventsByUsername (String username){
+    public List<EventModel> getAllEventsByUsername(String username) {
         List<EventModel> toReturn = null;
         PreparedStatement getEventsStmt = null;
         ResultSet resultSet = null;
-        try{
+        try {
             String getEventsSql = "select * from Event where DESCENDANT = ?";
             getEventsStmt = database.connection.prepareStatement(getEventsSql);
-            getEventsStmt.setString(1,username);
+            getEventsStmt.setString(1, username);
             resultSet = getEventsStmt.executeQuery();
             toReturn = new ArrayList<EventModel>();
-            while(resultSet.next()){
+            while (resultSet.next()) {
                 EventModel eventToAdd = new EventModel();
                 eventToAdd.setEventID(resultSet.getString(1));
                 eventToAdd.setDescendant(resultSet.getString(2));
@@ -170,25 +147,26 @@ public class EventDao {
                 eventToAdd.setYear(resultSet.getInt(9));
                 toReturn.add(eventToAdd);
             }
-        }
-        catch(SQLException e){
+            getEventsStmt.close();
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
+            return null;
         }
 
         return toReturn;
     }
 
-    public List<EventModel> getEventbyPersonId(String PersonId){
+    public List<EventModel> getEventbyPersonId(String PersonId) {
         List<EventModel> toReturn = null;
         PreparedStatement getEventStmt = null;
         ResultSet resultSet = null;
-        try{
+        try {
             String getEventSql = "select * from Event where PERSONID = ?";
             getEventStmt = database.connection.prepareStatement(getEventSql);
-            getEventStmt.setString(1,PersonId);
+            getEventStmt.setString(1, PersonId);
             resultSet = getEventStmt.executeQuery();
             toReturn = new ArrayList<EventModel>();
-            while(resultSet.next()){
+            while (resultSet.next()) {
                 EventModel toAdd = new EventModel();
                 toAdd.setEventID(resultSet.getString(1));
                 toAdd.setDescendant(resultSet.getString(2));
@@ -201,26 +179,27 @@ public class EventDao {
                 toAdd.setYear(resultSet.getInt(9));
                 toReturn.add(toAdd);
             }
+            getEventStmt.close();
             return toReturn;
-        }
-        catch(SQLException e){
+        } catch (SQLException e) {
             System.out.println("EventDAo getEventbyID sql exception:   " + e.getMessage());
             return null;
 
         }
     }
 
-    public EventModel getEventbyEventID(String EventId){
+    public EventModel getEventbyEventID(String EventId) {
         EventModel toReturn = null;
         PreparedStatement getEventStmt = null;
         ResultSet resultSet = null;
-        try{
+        try {
             String getEventSql = "select * from Event where EVENTID = ?";
             getEventStmt = database.connection.prepareStatement(getEventSql);
-            getEventStmt.setString(1,EventId);
+            getEventStmt.setString(1, EventId);
             resultSet = getEventStmt.executeQuery();
-            toReturn = new EventModel();
-            while(resultSet.next()){
+
+            while (resultSet.next()) {
+                toReturn = new EventModel();
                 toReturn.setEventID(resultSet.getString(1));
                 toReturn.setDescendant(resultSet.getString(2));
                 toReturn.setEventType(resultSet.getString(3));
@@ -230,26 +209,16 @@ public class EventDao {
                 toReturn.setCountry(resultSet.getString(7));
                 toReturn.setCity(resultSet.getString(8));
                 toReturn.setYear(resultSet.getInt(9));
+                getEventStmt.close();
+                return toReturn;
             }
-            getEventStmt.close();
-            return toReturn;
-        }
-        catch(SQLException e){
+
+        } catch (SQLException e) {
             System.out.println("EventDAO getEventbyID sql exception:   " + e.getMessage());
             e.printStackTrace();
             return null;
 
         }
-    }
-
-
-
-    /**
-     * Takes an EventModel object, looks at it's id, then updates the data for that id.
-     *
-     * @return a string detailing success or error
-     */
-    String updateEvent(EventModel toUpdate){
-        return "";
+        return null;
     }
 }

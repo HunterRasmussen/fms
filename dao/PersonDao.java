@@ -81,6 +81,7 @@ public class PersonDao {
             removePersonStmt.setString(1,personId);
             removePersonStmt.close();
             toReturn= "success";
+            removePersonStmt.close();;
             return toReturn;
 
         }
@@ -148,6 +149,7 @@ public class PersonDao {
                 toReturn.setFatherID(results.getString(6));
                 toReturn.setMotherID(results.getString(7));
                 toReturn.setSpouseID(results.getString(8));
+                getPersonStmt.close();
                 return toReturn;
             }
         }
@@ -181,6 +183,7 @@ public class PersonDao {
                 personToAdd.setSpouseID(resultSet.getString(8));
                 toReturn.add(personToAdd);
             }
+            getPeopleStmt.close();
             return toReturn;
         }
         catch (SQLException e){

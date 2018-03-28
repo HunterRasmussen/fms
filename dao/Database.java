@@ -27,7 +27,9 @@ public class Database {
         }
         catch(SQLException e){
             System.out.println("Error when creating the database tables\n");
+            return;
         }
+        //System.out.println("Database and tables created");
     }
 
 
@@ -105,7 +107,7 @@ public class Database {
 
         PreparedStatement AuthTokTableStmt = connection.prepareStatement(createAuthTokTable);
         AuthTokTableStmt.executeUpdate();
-        EventTableStmt.close();
+        AuthTokTableStmt.close();
     }
 
     public void clearDb() throws SQLException{

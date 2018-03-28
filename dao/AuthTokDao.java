@@ -52,12 +52,6 @@ public class AuthTokDao {
         return toReturn;
     }
 
-
-    /**
-     *
-     *
-     * @return a string declaring wether it succeeded or not.
-     */
     public String removeAuthTok(String authTok){
 
         PreparedStatement removeAuthTokStmt = null;
@@ -66,17 +60,15 @@ public class AuthTokDao {
             String removeAuthTokSql = "delete from AuthTok where AUTHTOK = ?";
             removeAuthTokStmt = database.connection.prepareStatement(removeAuthTokSql);
             removeAuthTokStmt.setString(1, authTok);
-            if(removeAuthTokStmt.executeUpdate() == 1) {
-                toReturn = "success";
-                removeAuthTokStmt.close();
-                return toReturn;
-            }
+            toReturn = "success";
+            removeAuthTokStmt.close();
+            return toReturn;
+
         }
         catch(SQLException e){
             toReturn = e.getMessage();
             return toReturn;
         }
-        return "Got to the end of the removeAuthTok from authTok table.  Shouldn't";
     }
 
     public String removeAllTokens(){
@@ -94,9 +86,6 @@ public class AuthTokDao {
         }
     }
 
-    /**
-     * Gets a username from the table and returns it
-     */
     public String getUser(String authTok){
 
         String toReturn = null;
@@ -109,9 +98,10 @@ public class AuthTokDao {
             resultSet = getUserStmt.executeQuery();
             while(resultSet.next()){
                 toReturn = resultSet.getString(1);
+                getUserStmt.close();
                 return toReturn;
             }
-            getUserStmt.close();
+
         }
         catch(SQLException e){
             return "failure";

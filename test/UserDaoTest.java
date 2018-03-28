@@ -37,11 +37,29 @@ public class UserDaoTest {
         }
         assertEquals(ourResult.getUserName(), "userName");
         assertEquals(ourResult.isSuccessFlag(), true);
-        assertEquals(ourResult.getPersonId(), "personId");
+        assertEquals(ourResult.getPersonId(), "personID");
+    }
+
+    @Test
+    public void testAddInvalidUser(){
+        try{
+            LoginRegisterResult result = theDatabase.usersTable.addUser(new UserModel(null,null,null,null,null,'f',null));
+            assertFalse(result.isSuccessFlag());
+        }
+        catch (SQLException e ){
+            System.out.println("Test adding invalid user somehow created an sql exception");
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @Test
     public void testGetUser(){
+        try{
+            theDatabase.usersTable.addUser(model1);
+        }
+        catch (SQLException e){   }
+
         model2 = theDatabase.usersTable.getUser("userName");
             assertEquals(model1.getUserName(),model2.getUserName());
             assertEquals(model1.getPassword(), model2.getPassword());
@@ -59,15 +77,17 @@ public class UserDaoTest {
         //assertEquals(model2.successMessage, "[SQLITE_ERROR] SQL error or missing database (no such table: users)");
     }
 
-
-
     @Test
     public void testRemoveUser(){
         stringResult = theDatabase.usersTable.removeUser("userName");
-        assertEquals(stringResult,"good");
+        assertEquals(stringResult,"success");
     }
 
-
+    @Test
+    public void testRemoveAllUsers(){
+        String result = theDatabase.usersTable.removeAllUsers();
+        assertEquals(result, "success");
+    }
 
 
 
